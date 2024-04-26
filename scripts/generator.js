@@ -6,6 +6,8 @@ const init = () => {
   let diagonalMoves = 0; // Track diagonal moves
 
   const generateSVGShape = (gridSize) => {
+    const targetArea = Math.floor(gridSize * gridSize * 0.9); // % of the grid area
+
     const numbers = [];
     for (let i = 0; i < gridSize + cellSize; i += cellSize) {
       numbers.push(i);
@@ -18,8 +20,9 @@ const init = () => {
     let currentY = startY;
 
     let points = `${currentX},${currentY} `;
+    let currentArea = cellSize * cellSize;
 
-    while (true) {
+    while (currentArea < targetArea) {
       let availableMoves = [];
 
       // Check adjacent cells for available moves
@@ -49,23 +52,24 @@ const init = () => {
         }
       }
 
-      // Choose a random available move
-      if (availableMoves.length > 0) {
-        let move =
-          availableMoves[Math.floor(Math.random() * availableMoves.length)];
-        currentX = move.x;
-        currentY = move.y;
-        points += `${currentX},${currentY} `;
-      } else {
-        // If no available moves, break the loop
+      // If no available moves, break the loop
+      if (availableMoves.length === 0) {
         break;
       }
+
+      // Choose a random available move
+      let move =
+        availableMoves[Math.floor(Math.random() * availableMoves.length)];
+      currentX = move.x;
+      currentY = move.y;
+      points += `${currentX},${currentY} `;
+      currentArea += cellSize * cellSize;
     }
 
     console.log(points);
 
     let svg = `<svg width="${gridSize}" height="${gridSize}">`;
-    svg += `<polygon points="${points}" fill="black"> </polygon>`;
+    svg += `<polygon points="${points}" fill="black" stroke="black"> </polygon>`;
     svg += "</svg>";
     return svg;
   };
@@ -85,11 +89,8 @@ const init = () => {
   };
 
   document.getElementById("generateBtn").addEventListener("click", function () {
-    // Choose a random step size from stepSizes array
-    const stepSize = stepSizes[Math.floor(Math.random() * stepSizes.length)];
-    // Update cellSize based on the chosen step size
-    const cellSize = stepSize / 2;
-    svgContent = generateSVGShape(gridSize, stepSize, cellSize);
+    rotateAngle = 0;
+    svgContent = generateSVGShape(gridSize);
     document.getElementById("svgContainer").innerHTML = svgContent;
     // Reset diagonalMoves on generating new shape
     diagonalMoves = 0;
@@ -97,6 +98,18 @@ const init = () => {
 
   document.getElementById("downloadBtn").addEventListener("click", function () {
     exportSVG(svgContent);
+  });
+
+  let rotateAngle = 0;
+
+  const rotateSVG = () => {
+    rotateAngle += 90;
+    const svgElement = document.querySelector("svg");
+    svgElement.style.transform = "rotate(" + rotateAngle + "deg)";
+  };
+
+  document.getElementById("rotateBtn").addEventListener("click", function () {
+    rotateSVG();
   });
 };
 
